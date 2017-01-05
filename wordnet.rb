@@ -1,4 +1,11 @@
-class WordNet  
+class WordNet
+
+# Building the WordNet graph: each vertex v is a non-negative
+# integer that represents a synset, and each directed edge v->w
+# represents that w is a hypernym of v. The graph is directed
+# and acyclic (DAG), though not necessarily a tree since each
+# synset can have several hypernyms
+
   def initialize(file1, file2)
     @synsets = Hash.new
     @hypernyms = Hash.new
@@ -61,6 +68,13 @@ class WordNet
     f.close
   end
 
+
+
+
+# The provided code will process the input file and pass an
+# array of words into isnoun. The method should return true
+# if all of the words in the array are contained in the
+# synsets, and false otherwise
   def isnoun(arr)
     bool = false
     arr.each do |noun|
@@ -77,6 +91,11 @@ class WordNet
     bool
   end
 
+
+
+
+# Returns the number of nouns in the synsets. The count should
+# also include all instances of duplicate nouns.
   def nouns
     i = 0
     @synsets.each do |key, values|
@@ -85,6 +104,10 @@ class WordNet
     i
   end
 
+
+
+
+# Returns the number of edges in the WordNet graph built from the hypernyms
   def edges
     i = 0
     @hypernyms.each do |key, values|
@@ -93,6 +116,12 @@ class WordNet
     i
   end
 
+
+
+
+ # Let v and w be defined as sets (arrays) of synset IDs.
+ # Returns minimum length of the SAPs between any ID of v
+ # and any ID of w
   def length(v, w)
    all_ancestors = []
    min_dst = Float::INFINITY
@@ -113,6 +142,13 @@ class WordNet
    ancestor_exists ? min_dst : -1
   end
 
+
+
+
+# Let v and w be defined as above. The method will first find
+# the minimum-length SAPs between the IDs of v and w. Then, it
+# should return an array of the SAPs' LCAs (in any order). The
+# array should not contain duplicates
   def ancestor(v, w)
    all_ancestors = []
    min_dst = Float::INFINITY
@@ -136,6 +172,13 @@ class WordNet
    ancestor_exists ? lcas : -1
   end
 
+
+
+
+# Let v and w each be a noun. Let v' and w' represent the synset
+# IDs associated with the nouns v and w respectively. Returns an
+# array (any order) of the nouns contained in the LCAs of v' and
+# w', including duplicates
   def root(v, w)
     v_ids = []
     w_ids = []
@@ -161,6 +204,19 @@ class WordNet
     return roots
   end
 
+
+
+
+# Given a list of nouns A1, A2, ..., An, which noun is the least
+# related to the others? To identify the outcast, for each noun 
+# compute the sum of the squares of the distance between the noun 
+# and every other one. For instance, the sum for noun Ai (denoted
+# as di) is calculated as follows:
+
+# di = (dist(Ai, A1))2 + (dist(Ai, A2))2 + ... + (dist(Ai, An))2. 
+# The outcast(s) is At for which dt is the maximum
+
+# Given an array of nouns, the method should return an array of the outcast(s)
   def outcast(nouns)
     ids = {}
     distances = {}
@@ -233,7 +289,10 @@ class WordNet
     count
   end
 
-
+# Performs a binary search starting at the input vertex
+# Returns a hash of distances, in which the key is the
+# vertex ID, and the value is that vertex's dist to src
+# vertex v. 
   def bfs(v)
     curr = v
     queue = []
@@ -242,7 +301,6 @@ class WordNet
     distances[curr] = 0
     while !queue.empty?
       curr = queue.shift
-     # puts curr
       dst = distances[curr] + 1
       if @hypernyms.include?(curr)
         queue += @hypernyms[curr]
@@ -252,16 +310,16 @@ class WordNet
         distances[v] = dst if !distances.include?(v)
       end
     end
- #   puts distances.inspect
     distances
   end
 
+# Returns the lowest common ancestor between vertex
+# a and b, and the combined distance of each vertex
+# to that ancestor
   def lowest_common_ancestor(a, b)
     neighbors_A = bfs(a)
     neighbors_B = bfs(b)
- #   puts @hypernyms.inspect
- #   puts neighbors_A.inspect
- #   puts neighbors_B.inspect
+
     min_dst = Float::INFINITY
 
     in_common = neighbors_A.keys & neighbors_B.keys
